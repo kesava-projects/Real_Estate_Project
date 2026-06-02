@@ -9,6 +9,18 @@
   margin-bottom:40px;
 }
 
+.contacts-subtitle{
+  text-align:center;
+  color:#555;
+  margin:-24px 0 32px;
+}
+
+.contact-login-hint{
+  color:#555;
+  margin-bottom:12px;
+  font-size:0.95rem;
+}
+
 .contact-card{
 
   background:white;

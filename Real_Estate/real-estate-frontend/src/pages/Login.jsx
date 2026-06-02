@@ -4,6 +4,10 @@ import "../styles/auth.css";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useGoogleLogin } from "@react-oauth/google";
+import {
+  fetchCurrentUser,
+  saveUserProfile,
+} from "../services/authService";
 
 function Login() {
   const navigate = useNavigate();
@@ -27,6 +31,11 @@ function Login() {
 
       localStorage.setItem("access", response.data.access);
       localStorage.setItem("refresh", response.data.refresh);
+      if (response.data.user) {
+        saveUserProfile(response.data.user);
+      } else {
+        await fetchCurrentUser();
+      }
 
       toast.success("Login Successful");
       navigate("/properties");
@@ -36,7 +45,7 @@ function Login() {
         error.response?.data?.error ||
         "Invalid Credentials";
       toast.error(
-        typeof message === "string" ? message : "Invalid Credentials"
+        typeof message === "string" ? message : "Invalid Credentials",
       );
     }
   };
@@ -51,6 +60,11 @@ function Login() {
 
         localStorage.setItem("access", res.data.access);
         localStorage.setItem("refresh", res.data.refresh);
+        if (res.data.user) {
+          saveUserProfile(res.data.user);
+        } else {
+          await fetchCurrentUser();
+        }
 
         toast.success("Google Login Successful");
         navigate("/properties");

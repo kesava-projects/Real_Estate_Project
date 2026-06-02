@@ -1,4 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
+import { clearUserProfile, getStoredRole } from "../services/authService";
 import "../styles/Navbar.css";
 
 function Navbar() {
@@ -6,11 +7,14 @@ function Navbar() {
   const navigate = useNavigate();
 
   const token = localStorage.getItem("access");
+  const role = getStoredRole();
+  const isAgent = role === "AGENT" || role === "ADMIN";
 
   const logout = () => {
 
     localStorage.removeItem("access");
     localStorage.removeItem("refresh");
+    clearUserProfile();
 
     navigate("/login");
   };
@@ -30,17 +34,23 @@ function Navbar() {
           Home
         </Link>
 
-        <Link to="/create-property">
-              Create Property
-            </Link>
+        {token && isAgent && (
+          <Link to="/create-property">
+            Create Property
+          </Link>
+        )}
 
-            <Link to="/wishlist">
-  Wishlist ❤️
-</Link>
+        {token && !isAgent && (
+          <Link to="/wishlist">
+            Wishlist ❤️
+          </Link>
+        )}
 
-        <Link to="/contacts">
-  Contacts
-</Link>
+        {token && (
+          <Link to="/contacts">
+            {isAgent ? "Buyer Inquiries" : "My Contacts"}
+          </Link>
+        )}
 
         {!token ? (
           <>
