@@ -8,7 +8,13 @@ from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
 from dj_rest_auth.registration.views import SocialLoginView
 
-from .serializers import RegisterSerializer
+from rest_framework_simplejwt.views import TokenObtainPairView
+
+from .serializers import RegisterSerializer, EmailTokenObtainPairSerializer
+
+
+class EmailTokenObtainPairView(TokenObtainPairView):
+    serializer_class = EmailTokenObtainPairSerializer
 
 class AuthRegisterThrottle(AnonRateThrottle):
     scope = 'auth'

@@ -61,9 +61,9 @@ class RealEstateAuthTests(APITestCase):
         self.assertIn("password", response.data)
 
     def test_login_jwt_token_obtain(self):
-        """Test standard JWT login returns tokens."""
+        """Test JWT login with email returns tokens."""
         data = {
-            "username": "buyeruser",
+            "email": "buyer@example.com",
             "password": "Password123!"
         }
         response = self.client.post(self.login_url, data, format='json')

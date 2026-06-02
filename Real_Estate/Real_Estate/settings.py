@@ -179,19 +179,44 @@ USE_TZ = True
 STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Google Social Authentication Provider Settings
-SOCIALACCOUNT_PROVIDERS = {
-    'google': {
-        "SCOPE": ["profile", "email"],
-        'APP': {
-            'client_id': os.getenv('GOOGLE_CLIENT_ID'),
-            'secret': os.getenv('GOOGLE_SECRET'),
-            'key': ''
-        }
-    }
-}
+# -----------------------------------------------------------------------
+# django-allauth Account Settings
+# -----------------------------------------------------------------------
+# Disable mandatory email verification so OAuth sign-ins are not blocked
+ACCOUNT_EMAIL_VERIFICATION = 'none'
+
+# Use email as the primary login identifier (no username) - allauth 65.x syntax
+ACCOUNT_LOGIN_METHODS = {'email'}
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
+ACCOUNT_UNIQUE_EMAIL = True
+
+# Ensure allauth uses http in development (avoids redirect issues)
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'https' if not DEBUG else 'http'
+
+# -----------------------------------------------------------------------
+# Social Account (OAuth) Settings
+# -----------------------------------------------------------------------
+# Skip email verification for social accounts (Google already verifies it)
+SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
 
 # Auto link existing database email accounts with Google OAuth logins
 SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
 SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
+
+# Store OAuth tokens in the database
+SOCIALACCOUNT_STORE_TOKENS = True
+
+# -----------------------------------------------------------------------
+# Google OAuth 2.0 Provider Configuration
+# -----------------------------------------------------------------------
+# Google credentials live in the DB SocialApp (synced from .env on startup in accounts.apps).
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': ['profile', 'email'],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        },
+        'FETCH_USERINFO': True,
+    }
+}
 

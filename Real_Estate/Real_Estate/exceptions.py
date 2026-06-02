@@ -5,7 +5,29 @@ from rest_framework import status
 
 logger = logging.getLogger(__name__)
 
+# OAuth2Error is a non-DRF exception raised by allauth when a token is
+# invalid or Google's userinfo endpoint returns an error. We catch it here
+# and return a clean 400 instead of letting it bubble up as a 500.
+_OAUTH_ERROR_CLASSES = []
+try:
+    from allauth.socialaccount.providers.oauth2.client import OAuth2Error
+    _OAUTH_ERROR_CLASSES.append(OAuth2Error)
+except ImportError:
+    pass
+
+
 def custom_exception_handler(exc, context):
+    # Handle allauth OAuth2Error as a 400 Bad Request
+    if _OAUTH_ERROR_CLASSES and isinstance(exc, tuple(_OAUTH_ERROR_CLASSES)):
+        logger.warning(f"OAuth2 error during social login: {exc}")
+        return Response(
+            {
+                "error": "Invalid or expired OAuth token. Please re-authenticate with Google.",
+                "status_code": status.HTTP_400_BAD_REQUEST,
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
     # Call REST framework's default exception handler first,
     # to get the standard error response.
     response = exception_handler(exc, context)
@@ -22,7 +44,7 @@ def custom_exception_handler(exc, context):
     else:
         # If response is None, it's a server-level unhandled exception (e.g. database failure)
         logger.error(f"Unhandled Exception: {str(exc)}", exc_info=True)
-        
+
         # Provide a safe, unified JSON response to protect details
         response = Response(
             {
