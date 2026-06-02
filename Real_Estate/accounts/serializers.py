@@ -4,6 +4,12 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import User
 
 
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'email', 'phone', 'role')
+
+
 class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
     """Accept email + password for JWT login (maps email to username internally)."""
 
@@ -21,7 +27,9 @@ class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
                 "No active account found with the given credentials"
             )
         attrs["username"] = user.username
-        return super().validate(attrs)
+        data = super().validate(attrs)
+        data["user"] = UserProfileSerializer(self.user).data
+        return data
 
 class RegisterSerializer(serializers.ModelSerializer):
 

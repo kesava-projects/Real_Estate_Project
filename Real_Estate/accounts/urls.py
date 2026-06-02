@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import register, GoogleLogin, EmailTokenObtainPairView
+from .views import register, me, GoogleLogin, EmailTokenObtainPairView
 from rest_framework_simplejwt.views import TokenRefreshView
 
 urlpatterns = [
@@ -12,6 +12,11 @@ urlpatterns = [
         'login/',
         EmailTokenObtainPairView.as_view(),
         name='token_obtain_pair'
+    ),
+    path(
+        'me/',
+        me,
+        name='me'
     ),
     path(
         'refresh/',

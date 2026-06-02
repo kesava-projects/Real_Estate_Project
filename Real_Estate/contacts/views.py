@@ -27,8 +27,15 @@ class ContactRequestViewSet(viewsets.ModelViewSet):
         # Default: Buyers/Users see only requests they submitted
         return ContactRequest.objects.filter(user=user).order_by('-created_at')
 
+    def create(self, request, *args, **kwargs):
+        if request.user.role != 'BUYER':
+            return Response(
+                {"error": "Only buyers can send contact requests."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        return super().create(request, *args, **kwargs)
+
     def perform_create(self, serializer):
-        # Set the logged in buyer as the sender of the contact request
         serializer.save(user=self.request.user)
 
     def destroy(self, request, *args, **kwargs):

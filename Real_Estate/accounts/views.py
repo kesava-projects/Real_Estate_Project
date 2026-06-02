@@ -2,7 +2,7 @@ from rest_framework.decorators import api_view, throttle_classes, permission_cla
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.throttling import AnonRateThrottle
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
@@ -10,7 +10,11 @@ from dj_rest_auth.registration.views import SocialLoginView
 
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from .serializers import RegisterSerializer, EmailTokenObtainPairSerializer
+from .serializers import (
+    RegisterSerializer,
+    EmailTokenObtainPairSerializer,
+    UserProfileSerializer,
+)
 
 
 class EmailTokenObtainPairView(TokenObtainPairView):
@@ -35,6 +39,13 @@ def register(request):
         }, status=status.HTTP_201_CREATED)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def me(request):
+    return Response(UserProfileSerializer(request.user).data)
+
 
 class GoogleLogin(SocialLoginView):
     """
