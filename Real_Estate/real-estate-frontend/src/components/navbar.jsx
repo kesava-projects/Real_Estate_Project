@@ -1,0 +1,73 @@
+import { Link, useNavigate } from "react-router-dom";
+import "../styles/Navbar.css";
+
+function Navbar() {
+
+  const navigate = useNavigate();
+
+  const token = localStorage.getItem("access");
+
+  const logout = () => {
+
+    localStorage.removeItem("access");
+    localStorage.removeItem("refresh");
+
+    navigate("/login");
+  };
+
+  return (
+    <nav className="navbar">
+
+      <div className="logo">
+        <Link to="/">
+          RealEstate
+        </Link>
+      </div>
+
+      <div className="nav-links">
+
+        <Link to="/">
+          Home
+        </Link>
+
+        <Link to="/create-property">
+              Create Property
+            </Link>
+
+            <Link to="/wishlist">
+  Wishlist ❤️
+</Link>
+
+        <Link to="/contacts">
+  Contacts
+</Link>
+
+        {!token ? (
+          <>
+            <Link to="/login">
+              Login
+            </Link>
+
+            <Link to="/register">
+              Register
+            </Link>
+          </>
+        ) : (
+          <>
+
+            <button
+              className="logout-btn"
+              onClick={logout}
+            >
+              Logout
+            </button>
+          </>
+        )}
+
+      </div>
+
+    </nav>
+  );
+}
+
+export default Navbar;

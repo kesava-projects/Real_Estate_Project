@@ -1,0 +1,45 @@
+.review-container {
+  margin-top: 30px;
+  padding: 20px;
+  border-top: 2px solid #eee;
+}
+
+.review-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.review-form textarea {
+  height: 80px;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.review-form select,
+.review-form button {
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.review-form button {
+  background: #2563eb;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.review-card {
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  background: #fafafa;
+}
+
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+}
