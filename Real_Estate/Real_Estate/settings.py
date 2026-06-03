@@ -76,8 +76,12 @@ AUTH_USER_MODEL = "accounts.User"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
+
+def get_env(name, default=""):
+    return (os.getenv(name, default) or "").strip()
+
 USE_CLOUDINARY_STORAGE = all(
-    os.getenv(name)
+    get_env(name)
     for name in (
         "CLOUDINARY_CLOUD_NAME",
         "CLOUDINARY_API_KEY",
@@ -92,9 +96,9 @@ if USE_CLOUDINARY_STORAGE:
     ]
 
     CLOUDINARY_STORAGE = {
-        "CLOUD_NAME": os.getenv("CLOUDINARY_CLOUD_NAME"),
-        "API_KEY": os.getenv("CLOUDINARY_API_KEY"),
-        "API_SECRET": os.getenv("CLOUDINARY_API_SECRET"),
+        "CLOUD_NAME": get_env("CLOUDINARY_CLOUD_NAME"),
+        "API_KEY": get_env("CLOUDINARY_API_KEY"),
+        "API_SECRET": get_env("CLOUDINARY_API_SECRET"),
     }
 
     STORAGES = {
@@ -188,6 +192,9 @@ DATABASES = {
         'PASSWORD': os.getenv('DB_PASSWORD'),
         'HOST': os.getenv('DB_HOST'),
         'PORT': os.getenv('DB_PORT'),
+        'OPTIONS': {
+            'sslmode': os.getenv('DB_SSLMODE', 'require'),
+        },
     }
 }
 
