@@ -32,7 +32,14 @@ class AccountsConfig(AppConfig):
         if not client_id or not secret:
             return
 
-        site = Site.objects.get_current()
+        try:
+            site = Site.objects.get_current()
+        except Site.DoesNotExist:
+            site = Site.objects.create(
+                id=1,
+                domain="localhost",
+                name="localhost",
+            )
         app, _created = SocialApp.objects.update_or_create(
             provider="google",
             defaults={

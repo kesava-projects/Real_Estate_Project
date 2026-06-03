@@ -1,8 +1,10 @@
 import axios from "axios";
 import { notifyAuthStateChanged } from "./authService";
 
+const baseURL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+
 const api = axios.create({
-  baseURL: "http://localhost:8000",
+  baseURL,
 });
 
 api.interceptors.request.use((config) => {
@@ -24,10 +26,9 @@ api.interceptors.response.use(
     ) {
       original._retry = true;
       try {
-        const { data } = await axios.post(
-          "http://localhost:8000/accounts/refresh/",
-          { refresh: localStorage.getItem("refresh") },
-        );
+        const { data } = await axios.post(`${baseURL}/accounts/refresh/`, {
+          refresh: localStorage.getItem("refresh"),
+        });
         localStorage.setItem("access", data.access);
         if (data.refresh) {
           localStorage.setItem("refresh", data.refresh);

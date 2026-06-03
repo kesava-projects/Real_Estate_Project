@@ -76,11 +76,51 @@ AUTH_USER_MODEL = "accounts.User"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
+USE_CLOUDINARY_STORAGE = all(
+    os.getenv(name)
+    for name in (
+        "CLOUDINARY_CLOUD_NAME",
+        "CLOUDINARY_API_KEY",
+        "CLOUDINARY_API_SECRET",
+    )
+)
+
+if USE_CLOUDINARY_STORAGE:
+    INSTALLED_APPS += [
+        "cloudinary_storage",
+        "cloudinary",
+    ]
+
+    CLOUDINARY_STORAGE = {
+        "CLOUD_NAME": os.getenv("CLOUDINARY_CLOUD_NAME"),
+        "API_KEY": os.getenv("CLOUDINARY_API_KEY"),
+        "API_SECRET": os.getenv("CLOUDINARY_API_SECRET"),
+    }
+
+    STORAGES = {
+        "default": {
+            "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    }
+else:
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    }
+
 REST_AUTH = {
     'TOKEN_MODEL': None,
     'USE_JWT': True,
     'JWT_AUTH_COOKIE': 'realestate-auth',
     'JWT_AUTH_REFRESH_COOKIE': 'realestate-refresh',
+    'USER_DETAILS_SERIALIZER': 'accounts.serializers.UserDetailsSerializer',
 }
 
 MIDDLEWARE = [
@@ -141,7 +181,7 @@ WSGI_APPLICATION = 'Real_Estate.wsgi.application'
 # Database
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
+        'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.getenv('DB_NAME'),
         'USER': os.getenv('DB_USER'),
         'PASSWORD': os.getenv('DB_PASSWORD'),

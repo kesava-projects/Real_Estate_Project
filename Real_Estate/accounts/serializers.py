@@ -10,6 +10,15 @@ class UserProfileSerializer(serializers.ModelSerializer):
         fields = ('id', 'username', 'email', 'phone', 'role')
 
 
+class UserDetailsSerializer(serializers.ModelSerializer):
+    """dj-rest-auth profile read/update (PUT/PATCH /accounts/user/)."""
+
+    class Meta:
+        model = User
+        fields = ('pk', 'username', 'email', 'phone', 'role')
+        read_only_fields = ('pk', 'email', 'role')
+
+
 class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
     """Accept email + password for JWT login (maps email to username internally)."""
 

@@ -20,3 +20,20 @@ class ContactRequest(models.Model):
     created_at = models.DateTimeField(
         auto_now_add=True
     )
+
+
+class ContactReply(models.Model):
+    contact = models.ForeignKey(
+        ContactRequest,
+        on_delete=models.CASCADE,
+        related_name='replies',
+    )
+    sender = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+    )
+    body = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['created_at']
