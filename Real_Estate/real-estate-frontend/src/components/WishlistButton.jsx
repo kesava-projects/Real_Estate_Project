@@ -1,57 +1,63 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { addToWishlist, getWishlist } from "../services/wishlistService";
-import "../styles/wishlist.css";
+import { getStoredRole } from "../services/authService";
+import { notifySuccess, notifyInfo, notifyError } from "../utils/toast";
+import { getApiErrorMessage } from "../utils/apiError";
 
 function WishlistButton({ propertyId }) {
-
+  const navigate = useNavigate();
   const [saved, setSaved] = useState(false);
-  const [wishlistId, setWishlistId] = useState(null);
-
   const token = localStorage.getItem("access");
+  const role = getStoredRole();
+  const isBuyer = !role || role === "BUYER";
 
   useEffect(() => {
-    if (token) checkWishlist();
-  }, []);
+    if (token && isBuyer) {
+      checkWishlist();
+    }
+  }, [propertyId, token, isBuyer]);
 
   const checkWishlist = async () => {
     try {
       const res = await getWishlist();
-
-      const item = res.data.find(
-        (w) => w.property === propertyId
-      );
-
-      if (item) {
-        setSaved(true);
-        setWishlistId(item.id);
-      }
-    } catch (err) {
-      console.log(err);
+      const item = res.data.find((w) => w.property === propertyId);
+      setSaved(!!item);
+    } catch {
+      /* ignore */
     }
   };
 
+  if (!isBuyer) {
+    return null;
+  }
+
   const handleClick = async () => {
     if (!token) {
-      alert("Please login first");
+      notifyInfo("Sign in to save properties to your wishlist");
+      navigate("/login");
       return;
     }
-
+    if (saved) {
+      notifyInfo("Already in your wishlist — open Wishlist to remove");
+      return;
+    }
     try {
-      if (!saved) {
-        await addToWishlist(propertyId);
-        setSaved(true);
-      }
-    } catch (err) {
-      alert(err.response?.data?.error);
+      await addToWishlist(propertyId);
+      setSaved(true);
+      notifySuccess("Added to wishlist");
+    } catch (error) {
+      notifyError(getApiErrorMessage(error, "Could not add to wishlist"));
     }
   };
 
   return (
     <button
-      className={saved ? "wishlist-btn saved" : "wishlist-btn"}
+      type="button"
+      className={`btn ${saved ? "btn-secondary" : "btn-primary"} wishlist-btn`}
       onClick={handleClick}
     >
-      {saved ? "❤️ Saved" : "🤍 Wishlist"}
+      {saved ? "❤️ Saved" : "🤍 Save to wishlist"}
     </button>
   );
 }

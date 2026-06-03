@@ -1,29 +1,12 @@
 import api from "./api";
 
-const getAuthHeader = () => ({
-  headers: {
-    Authorization: `Bearer ${localStorage.getItem("access")}`
-  }
-});
+export const createContactRequest = (data) => api.post("/contacts/", data);
 
-export const createContactRequest = (data) => {
-  return api.post(
-    "/contacts/",
-    data,
-    getAuthHeader()
-  );
-};
+export const getMyContacts = () => api.get("/contacts/");
 
-export const getMyContacts = () => {
-  return api.get(
-    "/contacts/",
-    getAuthHeader()
-  );
-};
+export const getContact = (id) => api.get(`/contacts/${id}/`);
 
-export const deleteContact = (id) => {
-  return api.delete(
-    `/contacts/${id}/`,
-    getAuthHeader()
-  );
-};
+export const deleteContact = (id) => api.delete(`/contacts/${id}/`);
+
+export const replyToContact = (id, data) =>
+  api.post(`/contacts/${id}/reply/`, data);

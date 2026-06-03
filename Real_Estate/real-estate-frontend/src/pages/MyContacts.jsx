@@ -1,84 +1,90 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { getMyContacts, deleteContact } from "../services/contactService";
-import {
-  fetchCurrentUser,
-  getStoredRole,
-} from "../services/authService";
+import { fetchCurrentUser, getStoredRole } from "../services/authService";
 import ContactCard from "../components/ContactCard";
-import "../styles/contact.css";
+import PageHeader from "../components/PageHeader";
+import LoadingSpinner from "../components/LoadingSpinner";
+import EmptyState from "../components/EmptyState";
+import { notifySuccess, notifyError } from "../utils/toast";
+import { getApiErrorMessage } from "../utils/apiError";
 
 function MyContacts() {
-  const navigate = useNavigate();
   const [contacts, setContacts] = useState([]);
   const [role, setRole] = useState(getStoredRole());
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem("access");
-    if (!token) {
-      navigate("/login");
-      return;
-    }
-
-    const init = async () => {
-      try {
-        const user = await fetchCurrentUser();
-        setRole(user.role);
-        await loadContacts();
-      } catch (error) {
-        console.log(error);
-      }
-    };
-
     init();
-  }, [navigate]);
+  }, []);
 
-  const loadContacts = async () => {
+  const init = async () => {
     try {
+      const user = await fetchCurrentUser();
+      setRole(user.role);
       const response = await getMyContacts();
       setContacts(response.data);
     } catch (error) {
-      console.log(error);
+      notifyError(getApiErrorMessage(error, "Failed to load contacts"));
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleDelete = async (id) => {
     try {
       await deleteContact(id);
-      setContacts(contacts.filter((contact) => contact.id !== id));
+      notifySuccess("Contact request removed");
+      setContacts((prev) => prev.filter((c) => c.id !== id));
     } catch (error) {
-      console.log(error);
+      notifyError(getApiErrorMessage(error, "Failed to delete request"));
     }
   };
 
+  const handleReply = (id, updatedContact) => {
+    setContacts((prev) =>
+      prev.map((contact) => (contact.id === id ? updatedContact : contact)),
+    );
+  };
+
   const isAgentView = role === "AGENT" || role === "ADMIN";
-  const pageTitle = isAgentView
-    ? "Buyer Inquiries"
-    : "My Contact Requests";
-  const emptyMessage = isAgentView
-    ? "No buyer inquiries yet for your listings."
-    : "No contact requests yet.";
+
+  if (loading) {
+    return <LoadingSpinner label="Loading messages..." />;
+  }
 
   return (
-    <div className="contacts-page">
-      <h1>{pageTitle}</h1>
-      {isAgentView && (
-        <p className="contacts-subtitle">
-          Messages from buyers about properties you listed.
-        </p>
-      )}
+    <div className="page-container">
+      <PageHeader
+        title={isAgentView ? "Buyer inquiries" : "My contact requests"}
+        subtitle={
+          isAgentView
+            ? "Messages from buyers about your listings"
+            : "Track messages you sent to agents"
+        }
+      />
 
       {contacts.length === 0 ? (
-        <h3>{emptyMessage}</h3>
+        <EmptyState
+          icon="✉️"
+          title={isAgentView ? "No inquiries yet" : "No requests yet"}
+          message={
+            isAgentView
+              ? "When buyers contact you about a listing, messages appear here."
+              : "Visit a property page and use Contact Agent to reach out."
+          }
+        />
       ) : (
-        contacts.map((contact) => (
-          <ContactCard
-            key={contact.id}
-            contact={contact}
-            viewerRole={role}
-            onDelete={handleDelete}
-          />
-        ))
+        <div className="contacts-list">
+          {contacts.map((contact) => (
+            <ContactCard
+              key={contact.id}
+              contact={contact}
+              viewerRole={role}
+              onDelete={handleDelete}
+              onReply={handleReply}
+            />
+          ))}
+        </div>
       )}
     </div>
   );

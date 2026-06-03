@@ -1,52 +1,50 @@
 import { useState } from "react";
-import api from "../services/api";
-import "../styles/auth.css";
-import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useGoogleLogin } from "@react-oauth/google";
 import {
+  notifyAuthStateChanged,
+  login,
+  googleLogin,
   fetchCurrentUser,
   saveUserProfile,
 } from "../services/authService";
+import { notifySuccess, notifyError } from "../utils/toast";
+import { getApiErrorMessage } from "../utils/apiError";
 
 function Login() {
   const navigate = useNavigate();
-  const [data, setData] = useState({
-    email: "",
-    password: "",
-  });
+  const location = useLocation();
+  const [data, setData] = useState({ email: "", password: "" });
+  const [submitting, setSubmitting] = useState(false);
+
+  const persistSession = async (tokenData) => {
+    localStorage.setItem("access", tokenData.access);
+    localStorage.setItem("refresh", tokenData.refresh);
+    notifyAuthStateChanged();
+    if (tokenData.user) {
+      saveUserProfile(tokenData.user);
+    } else {
+      await fetchCurrentUser();
+    }
+  };
 
   const handleChange = (e) => {
-    setData({
-      ...data,
-      [e.target.name]: e.target.value,
-    });
+    setData({ ...data, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    setSubmitting(true);
     try {
-      const response = await api.post("/accounts/login/", data);
-
-      localStorage.setItem("access", response.data.access);
-      localStorage.setItem("refresh", response.data.refresh);
-      if (response.data.user) {
-        saveUserProfile(response.data.user);
-      } else {
-        await fetchCurrentUser();
-      }
-
-      toast.success("Login Successful");
-      navigate("/properties");
+      const response = await login(data);
+      await persistSession(response.data);
+      notifySuccess("Welcome back!");
+      const redirect = location.state?.from?.pathname || "/properties";
+      navigate(redirect);
     } catch (error) {
-      const message =
-        error.response?.data?.detail ||
-        error.response?.data?.error ||
-        "Invalid Credentials";
-      toast.error(
-        typeof message === "string" ? message : "Invalid Credentials",
-      );
+      notifyError(getApiErrorMessage(error, "Invalid credentials"));
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -54,57 +52,60 @@ function Login() {
     flow: "implicit",
     onSuccess: async (tokenResponse) => {
       try {
-        const res = await api.post("/accounts/google/login/", {
-          access_token: tokenResponse.access_token,
-        });
-
-        localStorage.setItem("access", res.data.access);
-        localStorage.setItem("refresh", res.data.refresh);
-        if (res.data.user) {
-          saveUserProfile(res.data.user);
-        } else {
-          await fetchCurrentUser();
-        }
-
-        toast.success("Google Login Successful");
+        const res = await googleLogin(tokenResponse.access_token);
+        await persistSession(res.data);
+        notifySuccess("Google sign-in successful");
         navigate("/properties");
       } catch (err) {
-        console.error("Google login error:", err.response?.data);
-        toast.error(err.response?.data?.error || "Google Login Failed");
+        notifyError(getApiErrorMessage(err, "Google login failed"));
       }
     },
-    onError: (error) => {
-      console.error("Google OAuth error:", error);
-      toast.error("Google Login Failed");
-    },
+    onError: () => notifyError("Google login failed"),
   });
 
   return (
-    <div className="container">
-      <form className="card" onSubmit={handleSubmit}>
-        <h2>Login</h2>
+    <div className="auth-page">
+      <form className="glass-card auth-card" onSubmit={handleSubmit}>
+        <h2>Welcome back</h2>
+        <p className="auth-subtitle">
+          Sign in to save homes and contact agents
+        </p>
 
-        <input
-          type="email"
-          name="email"
-          placeholder="Email"
-          value={data.email}
-          onChange={handleChange}
-          required
-        />
+        <div className="form-grid">
+          <div>
+            <label htmlFor="email">Email</label>
+            <input
+              id="email"
+              type="email"
+              name="email"
+              value={data.email}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div>
+            <label htmlFor="password">Password</label>
+            <input
+              id="password"
+              type="password"
+              name="password"
+              value={data.password}
+              onChange={handleChange}
+              required
+            />
+          </div>
+        </div>
 
-        <input
-          type="password"
-          name="password"
-          placeholder="Password"
-          value={data.password}
-          onChange={handleChange}
-          required
-        />
+        <p className="auth-link-row">
+          <Link to="/forgot-password" className="link-btn">
+            Forgot password?
+          </Link>
+        </p>
 
-        <button type="submit">Login</button>
-        <br />
-        <br />
+        <button type="submit" className="btn btn-primary" disabled={submitting}>
+          {submitting ? "Signing in..." : "Sign in"}
+        </button>
+
         <button
           type="button"
           onClick={() => handleGoogleLogin()}
@@ -112,11 +113,18 @@ function Login() {
         >
           <img
             src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
-            alt="Google"
-            style={{ width: 18, marginRight: 8, verticalAlign: "middle" }}
+            alt=""
+            width={18}
           />
           Sign in with Google
         </button>
+
+        <p className="auth-footer">
+          New here?{" "}
+          <Link to="/register" className="link-btn">
+            Create account
+          </Link>
+        </p>
       </form>
     </div>
   );

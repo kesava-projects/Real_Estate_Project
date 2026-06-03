@@ -2,10 +2,13 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createContactRequest } from "../services/contactService";
 import { getStoredRole } from "../services/authService";
+import { notifySuccess, notifyError, notifyInfo } from "../utils/toast";
+import { getApiErrorMessage } from "../utils/apiError";
 
 function ContactProperty({ propertyId }) {
   const navigate = useNavigate();
   const [message, setMessage] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const role = getStoredRole();
   const token = localStorage.getItem("access");
 
@@ -17,50 +20,45 @@ function ContactProperty({ propertyId }) {
     e.preventDefault();
 
     if (!token) {
-      alert("Please log in as a buyer to contact the agent.");
+      notifyInfo("Please sign in as a buyer to contact the agent");
       navigate("/login");
       return;
     }
 
+    setSubmitting(true);
     try {
-      await createContactRequest({
-        property: propertyId,
-        message,
-      });
-
-      alert("Request sent successfully. The listing agent will see it in their inbox.");
-
+      await createContactRequest({ property: propertyId, message });
+      notifySuccess("Message sent! The listing agent will see it in their inbox.");
       setMessage("");
     } catch (error) {
-      const detail =
-        error.response?.data?.error ||
-        error.response?.data?.detail ||
-        "Unable to send request";
-      alert(typeof detail === "string" ? detail : "Unable to send request");
+      notifyError(getApiErrorMessage(error, "Unable to send request"));
+    } finally {
+      setSubmitting(false);
     }
   };
 
   return (
-    <div className="contact-form-card">
-      <h3>Contact Agent</h3>
-
+    <div className="contact-form-card glass-card">
+      <h3>Contact agent</h3>
       {!token && (
         <p className="contact-login-hint">
-          Log in with a buyer account to send a message to this property&apos;s agent.
+          Sign in with a buyer account to message this property&apos;s agent.
         </p>
       )}
-
       <form onSubmit={handleSubmit}>
         <textarea
-          placeholder="Write your message..."
+          placeholder="Hi, I'm interested in scheduling a visit..."
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           required
-          disabled={!token}
+          disabled={!token || submitting}
         />
-
-        <button type="submit" disabled={!token}>
-          Send Request
+        <button
+          type="submit"
+          className="btn btn-primary"
+          disabled={!token || submitting}
+        >
+          {submitting ? "Sending..." : "Send request"}
         </button>
       </form>
     </div>

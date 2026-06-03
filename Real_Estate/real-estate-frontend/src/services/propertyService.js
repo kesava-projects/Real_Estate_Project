@@ -1,23 +1,18 @@
 import api from "./api";
 
-export const getProperties = () => {
-  return api.get("/properties/listings/");
-};
+export const getProperties = (params = {}) =>
+  api.get("/properties/listings/", { params });
 
-export const getProperty = (id) => {
-  return api.get(`/properties/listings/${id}/`);
-};
+export const getProperty = (id) => api.get(`/properties/listings/${id}/`);
 
-export const createProperty = (data) => {
+export const createProperty = (data) =>
+  api.post("/properties/listings/", data);
 
-  const token = localStorage.getItem("access");
-  return api.post(
-    "/properties/listings/",
-    data,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    }
-  );
-};
+export const updateProperty = (id, data) =>
+  api.put(`/properties/listings/${id}/`, data);
+
+export const patchProperty = (id, data) =>
+  api.patch(`/properties/listings/${id}/`, data);
+
+export const deleteProperty = (id) =>
+  api.delete(`/properties/listings/${id}/`);

@@ -1,63 +1,111 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import Navbar from "./components/navbar";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import Navbar from "./components/Navbar";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import PropertyList from "./pages/PropertyList";
 import PropertyDetails from "./pages/PropertyDetails";
 import CreateProperty from "./pages/CreateProperty";
-import { Navigate } from "react-router-dom";
+import EditProperty from "./pages/EditProperty";
+import MyListings from "./pages/MyListings";
 import MyContacts from "./pages/MyContacts";
 import Wishlist from "./pages/Wishlist";
+import Profile from "./pages/Profile";
+import ChangePassword from "./pages/ChangePassword";
 
 function App() {
   return (
     <BrowserRouter>
-        <Navbar />
-        <br />
-        <br />
-      <Routes>
+      <Navbar />
+      <main className="app-shell">
+        <Routes>
+          <Route path="/" element={<Navigate to="/properties" replace />} />
 
+          {/* Auth — public */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route
-  path="/"
-  element={<Navigate to="/properties" />}
-/>
-        <Route
-          path="/login"
-          element={<Login />}
-        />
+            path="/reset-password/:uid/:token"
+            element={<ResetPassword />}
+          />
 
-        <Route
-          path="/register"
-          element={<Register />}
-        />
+          {/* Properties — public browse */}
+          <Route path="/properties" element={<PropertyList />} />
+          <Route path="/property/:id" element={<PropertyDetails />} />
 
-        <Route
-    path="/properties"
-    element={<PropertyList />}
-  />
+          {/* Agent property management */}
+          <Route
+            path="/create-property"
+            element={
+              <ProtectedRoute roles={["AGENT", "ADMIN"]}>
+                <CreateProperty />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/property/:id/edit"
+            element={
+              <ProtectedRoute roles={["AGENT", "ADMIN"]}>
+                <EditProperty />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/my-listings"
+            element={
+              <ProtectedRoute roles={["AGENT", "ADMIN"]}>
+                <MyListings />
+              </ProtectedRoute>
+            }
+          />
 
-  <Route
-    path="/property/:id"
-    element={<PropertyDetails />}
-  />
+          {/* Buyer features */}
+          <Route
+            path="/wishlist"
+            element={
+              <ProtectedRoute roles={["BUYER"]}>
+                <Wishlist />
+              </ProtectedRoute>
+            }
+          />
 
-  <Route
-    path="/create-property"
-    element={<CreateProperty />}
-  />
+          {/* Contacts — buyers & agents */}
+          <Route
+            path="/contacts"
+            element={
+              <ProtectedRoute>
+                <MyContacts />
+              </ProtectedRoute>
+            }
+          />
 
-  <Route
-  path="/contacts"
-  element={<MyContacts />}
-/>
+          {/* Account */}
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/change-password"
+            element={
+              <ProtectedRoute>
+                <ChangePassword />
+              </ProtectedRoute>
+            }
+          />
 
-<Route path="/wishlist" element={<Wishlist />} />
-
-      </Routes>
-
+          <Route path="*" element={<Navigate to="/properties" replace />} />
+        </Routes>
+      </main>
     </BrowserRouter>
-    );
+  );
 }
 
 export default App;

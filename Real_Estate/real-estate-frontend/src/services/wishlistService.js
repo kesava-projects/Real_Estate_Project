@@ -1,35 +1,8 @@
 import api from "./api";
 
-export const getWishlist = () => {
-  const token = localStorage.getItem("access");
+export const getWishlist = () => api.get("/wishlist/");
 
-  return api.get("/wishlist/", {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-};
+export const addToWishlist = (propertyId) =>
+  api.post("/wishlist/", { property: propertyId });
 
-export const addToWishlist = (propertyId) => {
-  const token = localStorage.getItem("access");
-
-  return api.post(
-    "/wishlist/",
-    { property: propertyId },
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
-};
-
-export const removeFromWishlist = (id) => {
-  const token = localStorage.getItem("access");
-
-  return api.delete(`/wishlist/${id}/`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-};
+export const removeFromWishlist = (id) => api.delete(`/wishlist/${id}/`);
