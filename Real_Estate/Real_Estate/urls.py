@@ -7,8 +7,10 @@ from django.views.generic import RedirectView
 from django.conf import settings
 from django.conf.urls.static import static
 
+FRONTEND_URL = getattr(settings, 'FRONTEND_URL', '/properties/')
+
 urlpatterns = [
-    path('', RedirectView.as_view(url='/properties/', permanent=False)),
+    path('', RedirectView.as_view(url=FRONTEND_URL, permanent=False)),
     path('admin/', admin.site.urls),
     
     # Auth routing

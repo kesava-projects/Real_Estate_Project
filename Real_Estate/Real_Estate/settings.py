@@ -21,6 +21,7 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
 
 ALLOWED_HOSTS = [h.strip() for h in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',') if h.strip()]
+FRONTEND_URL = os.getenv('FRONTEND_URL', '/properties/').strip()
 
 # Application definition
 INSTALLED_APPS = [
